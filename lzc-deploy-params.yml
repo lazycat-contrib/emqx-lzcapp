@@ -1,0 +1,13 @@
+params:
+  - id: dashboard_password
+    type: secret
+    name: "Dashboard 管理密码"
+    description: "EMQX Dashboard 的 admin 用户密码（自动生成，可在部署时修改）"
+    default_value: "$random(len=20)"
+    optional: false
+
+locales:
+  zh:
+    dashboard_password:
+      name: "Dashboard 管理密码"
+      description: "EMQX Dashboard 的 admin 用户密码（自动生成，可修改）"

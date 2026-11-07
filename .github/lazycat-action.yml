@@ -10,15 +10,15 @@ update:
   allow_downgrade: false
   version_source:
     type: image
-    image: datasette
+    image: emqx
 build:
   toolchains: []
   run_buildscript: false
 images:
-  - id: datasette
+  - id: emqx
     target: service
-    service: datasette
-    source: datasetteproject/datasette
+    service: emqx
+    source: emqx/emqx
     channel: stable
     sort: semver
     tag_regex: ^v?[0-9]+[.][0-9]+[.][0-9]+$
@@ -33,5 +33,5 @@ stores:
     enabled: false
   private:
     enabled: false
-    name: datasette
+    name: emqx
     skip_if_version_exists: true

@@ -1,18 +1,18 @@
-package: community.lazycat.app.datasette
-name: datasette
-version: 0.65.5
-description: "An open source multi-tool for exploring and publishing data: point it at SQLite databases and get an instant browsable web UI with a JSON API."
+package: community.lazycat.app.emqx
+name: EMQX
+version: 6.3.2
+description: "Scalable MQTT broker for IoT: MQTT 3.1.1/5.0, WebSocket, TLS, clustering, and a built-in management dashboard."
 min_os_version: "1.5.0"
-homepage: https://github.com/simonw/datasette
-author: simonw
-license: Apache-2.0
+homepage: https://github.com/emqx/emqx
+author: EMQ Technologies
+license: BUSL-1.1
 permissions:
   required:
     - net.internet
 locales:
   zh:
-    name: Datasette 数据浏览器
-    description: "把 SQLite 数据库变成可浏览的网页应用：自动生成表浏览、查询界面与 JSON API。"
+    name: EMQX MQTT 服务器
+    description: "IoT 物联网 MQTT 消息服务器：支持 MQTT 3.1.1/5.0、WebSocket、TLS 与集群，内置管理 Dashboard。"
   en:
-    name: Datasette
-    description: "Explore and publish SQLite databases with an instant web UI and JSON API."
+    name: EMQX MQTT Broker
+    description: "Scalable MQTT broker for IoT with a built-in management dashboard."

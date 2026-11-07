@@ -1,37 +1,55 @@
 application:
-  subdomain: datasette
+  subdomain: emqx
   multi_instance: false
-  # datasette has no user accounts or login page by default (anonymous access
-  # to all loaded databases); exposing it via public_path would let anyone
-  # with the URL read the data, so the platform entry gate stays the only
-  # auth layer (tileserver-gl/goshs precedent).
+  # EMQX Dashboard has a full account/login system and the default password is
+  # overridden via EMQX_DASHBOARD__DEFAULT_PASSWORD (random deploy param), so
+  # it qualifies for public_path (papra/servas precedent).
+  public_path:
+    - /
   upstreams:
     - location: /package-licenses/
       backend: file:///lzcapp/pkg/content/licenses/
     - location: /
-      backend: http://datasette:8080/
+      backend: http://emqx:18083/
+  ingress:
+    # MQTT over TCP (clients connect directly; MQTT has its own auth layer)
+    - protocol: tcp
+      port: 1883
+      service: emqx
+    # MQTT over WebSocket
+    - protocol: tcp
+      port: 8083
+      service: emqx
 services:
-  datasette:
-    # upstream: datasetteproject/datasette:0.65.5
-    image: docker.1ms.run/datasetteproject/datasette:0.65.5
-    command: ["serve", "/data", "--host", "0.0.0.0", "--port", "8080", "--cors"]
+  emqx:
+    # upstream: emqx/emqx:6.3.2
+    image: docker.1ms.run/emqx/emqx:6.3.2
+    environment:
+      - EMQX_DASHBOARD__DEFAULT_PASSWORD={{ .U.dashboard_password }}
+      # Pin the Erlang node cookie so container rebuilds keep sessions intact
+      - EMQX_NODE__COOKIE={{ printf "%x" (stable_secret "emqx_node_cookie") }}
+      - TZ=Asia/Shanghai
     binds:
-      - /lzcapp/var/data:/data
+      - /lzcapp/var/data:/opt/emqx/data
+      - /lzcapp/var/log:/opt/emqx/log
 usage: |
-  Datasette 是一个 SQLite 数据发布与浏览工具：把 .db / .sqlite / .sqlite3
-  数据库文件放进应用数据目录 /lzcapp/var/data，打开应用即可浏览所有表、
-  执行只读 SQL 查询，并获得每个库的 JSON API（-r0.65.5 会自动加载目录内
-  全部数据库文件）。
+  EMQX 是一个高可用的 MQTT 消息服务器（IoT 物联网消息中间件）：支持
+  MQTT 3.1.1 / 5.0、WebSocket、TLS 等协议，带 Dashboard 管理台。
 
   使用方法：
-  1. 把 SQLite 数据库文件放进应用数据目录 /lzcapp/var/data。
-  2. 打开应用即可看到数据库列表，点进表可浏览、筛选、导出 CSV/JSON。
-  3. 查询页面支持任意只读 SQL；API 端点形如 /<库名>/<表名>.json。
+  1. 打开应用进入 Dashboard 登录页，用户名 admin，密码在部署配置里查看
+     （已自动生成随机值，可修改）。
+  2. 登录后在「访问控制 - 客户端认证」里按需配置 MQTT 客户端账号。
+  3. MQTT 客户端直接连本机 1883 端口（WebSocket 走 8083），这两个端口
+     由应用直接对外监听、不经过平台登录页鉴权。
 
   数据与安全：
-  - 应用默认没有账号体系（匿名可读所有已加载数据），本包不对外开放
-    未登录访问（保持平台入口鉴权）。请不要把敏感数据库放进来。
-  - 服务器默认监听 8080 端口（容器内），数据目录为只读挂载即可工作。
+  - Dashboard 有独立账号体系且密码已随机化，因此网页入口对外开放
+    （public_path）。但 1883 端口默认允许匿名 MQTT 连接，请在 Dashboard
+    里尽快开启客户端认证，避免被陌生人读写消息。
+  - 数据保存在 /lzcapp/var/data，卸载应用会一并删除，请定期备份。
+  - EMQX 5.9 起上游采用 Business Source License（BSL 1.1），自托管
+    非商业使用免费，许可正文见 /package-licenses/。
 
   说明：
   - 本包未做实机验证，功能以官方文档为准，遇到问题请反馈。
